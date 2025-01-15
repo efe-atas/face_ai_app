@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "424564751433",
+    "project_id": "face-ai-app-e6337",
+    "storage_bucket": "face-ai-app-e6337.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424564751433:android:0c98229ff4e2c8dc4a9398",
+        "android_client_info": {
+          "package_name": "com.example.face_ai_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUT-d90FgTkp3Nk-G31nrrzLCPqBQedz4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
