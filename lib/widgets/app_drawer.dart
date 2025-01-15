@@ -1,6 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_strings.dart';
 import '../providers/theme_provider.dart';
@@ -62,12 +65,32 @@ class _AppDrawerState extends State<AppDrawer>
     }
   }
 
+  Future<void> _handleLogout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Çıkış yapılırken bir hata oluştu'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final languageProvider = Provider.of<LanguageProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
     final currentLanguage = languageProvider.currentLanguage;
+    final user = FirebaseAuth.instance.currentUser;
 
     return AnimatedBuilder(
       animation: _animation,
@@ -79,8 +102,35 @@ class _AppDrawerState extends State<AppDrawer>
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // add space
-                const SizedBox(height: 100),
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: AppColors.getSecondaryColor(isDarkMode),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.person,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        user?.email ?? '',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 _buildDrawerItem(
                   context,
                   icon: Icons.home_outlined,
@@ -128,12 +178,21 @@ class _AppDrawerState extends State<AppDrawer>
                       AppColors.getTextLightColor(isDarkMode).withOpacity(0.2),
                 ),
                 const SizedBox(height: 16),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.logout,
-                  title: AppStrings.getString('logout', currentLanguage),
-                  route: '/login',
-                  isDarkMode: isDarkMode,
+                ListTile(
+                  leading: Icon(
+                    Icons.logout,
+                    color: AppColors.getSecondaryColor(isDarkMode),
+                  ),
+                  title: Text(
+                    AppStrings.getString('logout', currentLanguage),
+                    style: GoogleFonts.poppins(
+                      color: AppColors.getTextDarkColor(isDarkMode),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () => _handleLogout(context),
+                  hoverColor:
+                      AppColors.getSecondaryColor(isDarkMode).withOpacity(0.1),
                 ),
               ],
             ),
@@ -171,14 +230,7 @@ class _AppDrawerState extends State<AppDrawer>
       tileColor: isSelected
           ? AppColors.getAccentColor(isDarkMode).withOpacity(0.1)
           : null,
-      onTap: () {
-        if (route == '/login') {
-          Navigator.pushNamedAndRemoveUntil(
-              context, '/login', (route) => false);
-        } else {
-          _navigateToRoute(context, route);
-        }
-      },
+      onTap: () => _navigateToRoute(context, route),
       hoverColor: AppColors.getSecondaryColor(isDarkMode).withOpacity(0.1),
     );
   }

@@ -7,24 +7,27 @@ import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../providers/theme_provider.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -54,7 +57,19 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  Future _handleLogin() async {
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Şifre tekrarı gerekli';
+    }
+
+    if (value != _passwordController.text) {
+      return 'Şifreler eşleşmiyor';
+    }
+
+    return null;
+  }
+
+  Future _handleRegister() async {
     if (_isLoading) return;
 
     if (!_formKey.currentState!.validate()) {
@@ -66,13 +81,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       if (mounted) {
-        // Giriş başarılı, ana sayfaya yönlendir
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
@@ -82,21 +96,14 @@ class _LoginScreenState extends State<LoginScreen> {
         case 'invalid-email':
           message = 'Geçersiz e-posta adresi';
           break;
-        case 'user-disabled':
-          message = 'Kullanıcı hesabı devre dışı bırakılmış';
+        case 'email-already-in-use':
+          message = 'Bu e-posta adresi zaten kullanımda';
           break;
-        case 'user-not-found':
-          message = 'Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı';
+        case 'operation-not-allowed':
+          message = 'E-posta/şifre girişi devre dışı';
           break;
-        case 'wrong-password':
-          message = 'Hatalı şifre';
-          break;
-        case 'invalid-credential':
-          message = 'E-posta veya şifre hatalı';
-          break;
-        case 'too-many-requests':
-          message =
-              'Çok fazla başarısız giriş denemesi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
+        case 'weak-password':
+          message = 'Daha güçlü bir şifre belirleyin';
           break;
         case 'network-request-failed':
           message = 'İnternet bağlantınızı kontrol edin';
@@ -147,6 +154,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.getBackgroundColor(isDarkMode),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.getTextDarkColor(isDarkMode),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -156,26 +174,8 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 50),
-                  Center(
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: AppColors.getSecondaryColor(isDarkMode)
-                            .withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.face,
-                        size: 60,
-                        color: AppColors.getSecondaryColor(isDarkMode),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
                   Text(
-                    'Hoş Geldiniz',
+                    'Kayıt Ol',
                     style: GoogleFonts.poppins(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -184,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Devam etmek için giriş yapın',
+                    'Yeni bir hesap oluşturun',
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: AppColors.getTextLightColor(isDarkMode),
@@ -283,28 +283,66 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        // Şifremi unuttum işlemi
-                      },
-                      child: Text(
-                        'Şifremi Unuttum',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.getAccentColor(isDarkMode),
-                          fontWeight: FontWeight.w500,
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    validator: _validateConfirmPassword,
+                    obscureText: !_isConfirmPasswordVisible,
+                    style: GoogleFonts.poppins(
+                      color: AppColors.getTextDarkColor(isDarkMode),
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'Şifre Tekrarı',
+                      labelStyle: GoogleFonts.poppins(
+                        color: AppColors.getTextLightColor(isDarkMode),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: AppColors.getSecondaryColor(isDarkMode),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppColors.getSecondaryColor(isDarkMode),
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmPasswordVisible =
+                                !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppColors.getSecondaryColor(isDarkMode)
+                              .withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppColors.getAccentColor(isDarkMode),
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
+                      onPressed: _isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.getAccentColor(isDarkMode),
                         shape: RoundedRectangleBorder(
@@ -321,7 +359,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             )
                           : Text(
-                              'Giriş Yap',
+                              'Kayıt Ol',
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -329,30 +367,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Hesabınız yok mu?',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.getTextLightColor(isDarkMode),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/register');
-                        },
-                        child: Text(
-                          'Kayıt Ol',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getAccentColor(isDarkMode),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

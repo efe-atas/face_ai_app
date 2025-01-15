@@ -1,18 +1,22 @@
+import 'package:face_ai_app/screens/main_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'constants/app_colors.dart';
+import 'providers/theme_provider.dart';
+import 'providers/language_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/favorites_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/login_screen.dart';
-import 'constants/app_colors.dart';
-import 'providers/theme_provider.dart';
-import 'providers/language_provider.dart';
+import 'screens/register_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     MultiProvider(
       providers: [
@@ -56,14 +60,15 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: themeProvider.themeMode,
-      initialRoute: '/login',
+      home: const MainPage(),
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/': (context) => const HomeScreen(),
+        '/home': (context) => const HomeScreen(),
         '/history': (context) => const HistoryScreen(),
         '/favorites': (context) => const FavoritesScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/about': (context) => const AboutScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
       },
     );
   }
