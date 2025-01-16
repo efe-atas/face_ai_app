@@ -65,6 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -72,8 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        // Giriş başarılı, ana sayfaya yönlendir
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        navigator.pushNamedAndRemoveUntil('/', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
       String message;
@@ -106,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(message),
             backgroundColor: Colors.red,
@@ -115,7 +117,9 @@ class _LoginScreenState extends State<LoginScreen> {
               label: 'Tamam',
               textColor: Colors.white,
               onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                if (mounted) {
+                  scaffoldMessenger.hideCurrentSnackBar();
+                }
               },
             ),
           ),
@@ -123,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Beklenmeyen bir hata oluştu: $e'),
             backgroundColor: Colors.red,

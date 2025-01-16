@@ -1,1 +1,46 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"face-ai-app-e6337","appId":"1:424564751433:android:0c98229ff4e2c8dc4a9398","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"face-ai-app-e6337","appId":"1:424564751433:ios:cb075dca9e532cd14a9398","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"face-ai-app-e6337","configurations":{"android":"1:424564751433:android:0c98229ff4e2c8dc4a9398","ios":"1:424564751433:ios:cb075dca9e532cd14a9398"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "face-ai-app-e6337",
+          "appId": "1:424564751433:android:0c98229ff4e2c8dc4a9398",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "face-ai-app-e6337",
+          "appId": "1:424564751433:ios:cb075dca9e532cd14a9398",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "face-ai-app-e6337",
+          "configurations": {
+            "android": "1:424564751433:android:0c98229ff4e2c8dc4a9398",
+            "ios": "1:424564751433:ios:cb075dca9e532cd14a9398"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

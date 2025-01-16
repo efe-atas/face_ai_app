@@ -80,6 +80,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -87,7 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        navigator.pushNamedAndRemoveUntil('/', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
       String message;
@@ -113,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(message),
             backgroundColor: Colors.red,
@@ -122,7 +125,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               label: 'Tamam',
               textColor: Colors.white,
               onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                if (mounted) {
+                  scaffoldMessenger.hideCurrentSnackBar();
+                }
               },
             ),
           ),
@@ -130,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Beklenmeyen bir hata oluştu: $e'),
             backgroundColor: Colors.red,
