@@ -166,6 +166,13 @@ class _AppDrawerState extends State<AppDrawer>
                 ),
                 _buildDrawerItem(
                   context,
+                  icon: Icons.bug_report_outlined,
+                  title: 'Firebase Test',
+                  route: '/test',
+                  isDarkMode: isDarkMode,
+                ),
+                _buildDrawerItem(
+                  context,
                   icon: Icons.info_outline,
                   title: AppStrings.getString('about', currentLanguage),
                   route: '/about',

@@ -1,6 +1,7 @@
 import 'package:face_ai_app/screens/main_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'constants/app_colors.dart';
@@ -13,9 +14,11 @@ import 'screens/settings_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/test_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: "assets/config/.env");
   await Firebase.initializeApp();
   runApp(
     MultiProvider(
@@ -69,6 +72,7 @@ class MyApp extends StatelessWidget {
         '/about': (context) => const AboutScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/test': (context) => const TestScreen(),
       },
     );
   }

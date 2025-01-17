@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,7 +10,8 @@ import '../constants/app_strings.dart';
 import '../widgets/app_drawer.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
-import 'result_screen.dart';
+import '../services/face_analysis_service.dart';
+import 'analysis_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isHovered = false;
+  bool _isLoading = false;
+  final _faceAnalysisService = FaceAnalysisService();
 
   @override
   void initState() {
@@ -42,13 +46,33 @@ class _HomeScreenState extends State<HomeScreen>
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: source);
 
-    if (image != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ResultScreen(),
-        ),
-      );
+    if (image != null) {
+      setState(() => _isLoading = true);
+
+      try {
+        final result = await _faceAnalysisService.analyzeFaceShape(image.path);
+
+        if (!mounted) return;
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AnalysisScreen(
+              imagePath: image.path,
+              analysisResult: result,
+            ),
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
     }
   }
 
@@ -101,7 +125,9 @@ class _HomeScreenState extends State<HomeScreen>
                     transform: Matrix4.identity()
                       ..scale(_isHovered ? 1.02 : 1.0),
                     child: GestureDetector(
-                      onTap: () => _processImage(ImageSource.gallery),
+                      onTap: _isLoading
+                          ? null
+                          : () => _processImage(ImageSource.gallery),
                       child: Container(
                         width: double.infinity,
                         height: 200,
@@ -125,53 +151,78 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            AnimatedBuilder(
-                              animation: _controller,
-                              builder: (context, child) {
-                                return Transform.scale(
-                                  scale: 1.0 + (_controller.value * 0.1),
-                                  child: Container(
-                                    width: 80,
-                                    height: 80,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.getSecondaryColor(
-                                              isDarkMode)
-                                          .withOpacity(0.2),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.add_a_photo_outlined,
-                                      size: 40,
-                                      color: AppColors.getSecondaryColor(
+                            if (_isLoading)
+                              Column(
+                                children: [
+                                  CircularProgressIndicator(
+                                    color:
+                                        AppColors.getSecondaryColor(isDarkMode),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Fotoğraf analiz ediliyor...',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      color: AppColors.getTextDarkColor(
                                           isDarkMode),
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              AppStrings.getString(
-                                  'upload_photo', currentLanguage),
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                color: AppColors.getTextDarkColor(isDarkMode),
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.3,
+                                ],
+                              )
+                            else
+                              Column(
+                                children: [
+                                  AnimatedBuilder(
+                                    animation: _controller,
+                                    builder: (context, child) {
+                                      return Transform.scale(
+                                        scale: 1.0 + (_controller.value * 0.1),
+                                        child: Container(
+                                          width: 80,
+                                          height: 80,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.getSecondaryColor(
+                                                    isDarkMode)
+                                                .withOpacity(0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.add_a_photo_outlined,
+                                            size: 40,
+                                            color: AppColors.getSecondaryColor(
+                                                isDarkMode),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    AppStrings.getString(
+                                        'upload_photo', currentLanguage),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      color: AppColors.getTextDarkColor(
+                                          isDarkMode),
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    AppStrings.getString(
+                                        'text_see_results', currentLanguage),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: AppColors.getTextLightColor(
+                                          isDarkMode),
+                                      letterSpacing: 0.3,
+                                      height: 1.4,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              AppStrings.getString(
-                                  'text_see_results', currentLanguage),
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: AppColors.getTextLightColor(isDarkMode),
-                                letterSpacing: 0.3,
-                                height: 1.4,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -185,7 +236,9 @@ class _HomeScreenState extends State<HomeScreen>
                       child: _buildOptionButton(
                         icon: Icons.camera_alt_outlined,
                         text: AppStrings.getString('camera', currentLanguage),
-                        onTap: () => _processImage(ImageSource.camera),
+                        onTap: _isLoading
+                            ? null
+                            : () => _processImage(ImageSource.camera),
                         isDarkMode: isDarkMode,
                       ),
                     ),
@@ -194,7 +247,9 @@ class _HomeScreenState extends State<HomeScreen>
                       child: _buildOptionButton(
                         icon: Icons.photo_library_outlined,
                         text: AppStrings.getString('gallery', currentLanguage),
-                        onTap: () => _processImage(ImageSource.gallery),
+                        onTap: _isLoading
+                            ? null
+                            : () => _processImage(ImageSource.gallery),
                         isDarkMode: isDarkMode,
                       ),
                     ),
@@ -261,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildOptionButton({
     required IconData icon,
     required String text,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     required bool isDarkMode,
   }) {
     return GestureDetector(

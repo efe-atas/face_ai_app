@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Yüz şeklinizi analiz etmek için kameraya erişim izni gerekiyor.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Yüz şeklinizi analiz etmek için galeriye erişim izni gerekiyor.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Kamera kullanımı için mikrofon izni gerekiyor.</string>
 </dict>
 </plist>
